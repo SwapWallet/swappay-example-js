@@ -42,7 +42,6 @@ class Invoice {
         const invoiceRes = await this.swapPay.createInvoice(
             amount,
             'TRX',
-            `Payment for Demo Item | ${userId}`,
             3600,
         )
 

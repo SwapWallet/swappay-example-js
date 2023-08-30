@@ -15,7 +15,7 @@ class SwapPay {
         })
     }
 
-    async createInvoice(amount, token, description="", ttl=3600) {
+    async createInvoice(amount, token, ttl=3600) {
         try {
             const r = await this.axios.post('/v1/invoice/fixed-amount', {
                 amount: {
@@ -24,7 +24,6 @@ class SwapPay {
                 },
                 network: NetworkMapping[token],
                 ttl,
-                description,
             })
 
             return r.data.result
