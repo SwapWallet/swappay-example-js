@@ -6,7 +6,11 @@ const bot = new Telegraf(config.telegram.token);
 const invoiceApp = new Invoice()
 
 async function start(ctx) {
-    const message = `Demo Store is a demo merchant integrated with SwapPay API, showcasing the future of global convenient crypto payments. Tap the button below and make a test purchase to try out the payment flow.`
+    let message = `Demo Store is a demo merchant integrated with [SwapPay API](https://docs.swapwallet.app/#swappay), showcasing the future of global convenient crypto payments. Tap the button below and make a test purchase to try out the payment flow.`
+    message += '\n\n'
+
+    message += 'You can find the source code for this demo at [Github](https://github.com/SwapWallet/swappay-example-js)'
+
     await ctx.reply(message, {
         parse_mode: 'markdown',
         ...Markup.inlineKeyboard([
