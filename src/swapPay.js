@@ -35,7 +35,7 @@ class SwapPay {
 
   async getInvoiceStatus(invoiceId) {
     try {
-      const r = await this.axios.get(`/v1/invoice/${invoiceId}`)
+      const r = await this.axios.get(`/v2/invoice/${invoiceId}`)
       return r.data.result
     } catch (e) {
       console.log(`ERROR CHECK INVOICE: ${e.message}`)
