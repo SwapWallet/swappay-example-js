@@ -8,4 +8,5 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: rootpassword
 
   app:
+    restart: unless-stopped
     build: .

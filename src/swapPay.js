@@ -1,47 +1,55 @@
 const axios = require('axios')
 
-const NetworkMapping = {
-  'TRX': 'TRON',
-}
-
 class SwapPay {
-  constructor(swapWalletToken) {
-    this.axios = axios.create({
-      baseURL: 'https://pay.swapwallet.app/api',
-      timeout: 30 * 1000,
-      headers: {
-        'Authorization': `Bearer ${swapWalletToken}`
-      }
-    })
-  }
+    constructor(swapWalletToken, username) {
+        this.username = username
+        this.axios = axios.create({
+            baseURL: 'https://swapwallet.app/api',
+            timeout: 30 * 1000,
+            headers: {
+                'Authorization': `Apikey ${swapWalletToken}`
+            }
+        })
+    }
 
-  async createInvoice(amount, token, ttl = 3600) {
-    try {
-      const r = await this.axios.post('/v2/invoice/fixed-amount', {
-        amount: {
-          number: String(amount),
-          unit: token,
-        },
-        network: NetworkMapping[token],
+    async newInvoice(
+        valueInDollar,
+        autoConversionToken,
         ttl,
-      })
-
-      return r.data.result
-    } catch (e) {
-      console.log(`ERROR CREATE INVOICE: ${e.message}`)
-      throw Error(e.message)
+        externalId,
+        description,
+        customData,
+        returnUrl,
+    ) {
+        try {
+            const r = await this.axios.post(`/v1/payment/${this.username}/invoice`, {
+                amount: {
+                    number: valueInDollar.toString(),
+                    unit: "USD"
+                },
+                autoConversionToken,
+                ttl,
+                externalId,
+                description,
+                customData,
+                returnUrl,
+            })
+            return r.data.result
+        } catch (error) {
+            console.error("ERROR CREATE INVOICE", error)
+            throw error
+        }
     }
-  }
 
-  async getInvoiceStatus(invoiceId) {
-    try {
-      const r = await this.axios.get(`/v2/invoice/${invoiceId}`)
-      return r.data.result
-    } catch (e) {
-      console.log(`ERROR CHECK INVOICE: ${e.message}`)
-      throw Error(e.message)
+    async getInvoiceById(invoiceId) {
+        try {
+            const r = await this.axios.get(`/v1/payment/${this.username}/invoice/${invoiceId}`)
+            return r.data.result
+        } catch (error) {
+            console.error("ERROR CHECK INVOICE", error)
+            throw error
+        }
     }
-  }
 }
 
 module.exports = SwapPay;

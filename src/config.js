@@ -4,6 +4,7 @@ const config = {
   },
   swapPay: {
     apiKey: '',
+    application: '',
   },
   db: {
     uri: 'mongodb://root:rootpassword@mongodb:27017/?directConnection=true'
