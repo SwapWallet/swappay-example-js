@@ -12,35 +12,6 @@ class SwapPay {
 		});
 	}
 
-	async newInvoice(
-		valueInDollar,
-		autoConversionToken,
-		ttl,
-		externalId,
-		description,
-		customData,
-		returnUrl,
-	) {
-		try {
-			const r = await this.axios.post(`/v1/payment/${this.username}/invoice`, {
-				amount: {
-					number: valueInDollar.toString(),
-					unit: "USD",
-				},
-				autoConversionToken,
-				ttl,
-				externalId,
-				description,
-				customData,
-				returnUrl,
-			});
-			return r.data.result;
-		} catch (error) {
-			console.error("ERROR CREATE INVOICE", error);
-			throw error;
-		}
-	}
-
 	async newDirectInvoice(amount, network, ttl, orderId, customData) {
 		try {
 			const r = await this.axios.post(
@@ -63,7 +34,7 @@ class SwapPay {
 	async getInvoiceById(invoiceId) {
 		try {
 			const r = await this.axios.get(
-				`/v1/payment/${this.username}/invoice/${invoiceId}`,
+				`/v1/payment/${this.username}/invoice/${invoiceId}/info`,
 			);
 			return r.data.result;
 		} catch (error) {

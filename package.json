@@ -5,7 +5,10 @@
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"start": "node src/index.js"
+		"start": "node src/index.js",
+		"format": "biome format --write",
+		"lint": "biome lint --write",
+		"check": "biome check --write"
 	},
 	"author": "",
 	"license": "ISC",

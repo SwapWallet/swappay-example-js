@@ -4,10 +4,10 @@ const Invoice = require("./invoice");
 
 const bot = new Telegraf(config.telegram.token);
 const invoiceApp = new Invoice();
+const PRICE = "0.01";
 
 async function start(ctx) {
-	// we check all invoices in every bot starts! but maybe you want to check specific invoice based on webhook or returnUrl params
-	invoiceApp.checkInvoices();
+	// Invoice checking is now handled by the periodic interval system in index.js
 
 	let message = `فروشگاه نمایشی یک فروشنده‌ی آزمایشی است که با [SwapPay API](https://docs.swapwallet.app/#swappay) یکپارچه شده و آینده‌ی پرداخت‌های رمزارزی آسان و جهانی را به نمایش می‌گذارد.  روی دکمه‌ی زیر بزنید و یک خرید آزمایشی انجام دهید تا جریان پرداخت را امتحان کنید.`;
 	message += "\n\n";
@@ -35,7 +35,7 @@ bot.action("show-item", async (ctx) => {
 	let message = `*محصول آزمایشی*`;
 	message += `\n\n`;
 
-	message += `*قیمت:* 1 دلار`;
+	message += `*قیمت:* ${PRICE} دلار`;
 	message += `\n\n`;
 
 	// message += `*Warning!* The pay feature is in production and will result in your wallet being charged.`
@@ -65,7 +65,7 @@ bot.action("token:usdt", async (ctx) => {
 	let message = `*محصول آزمایشی*`;
 	message += `\n\n`;
 
-	message += `*قیمت:* 1 دلار`;
+	message += `*قیمت:* ${PRICE} دلار`;
 	message += `\n\n`;
 
 	// message += `*Warning!* The pay feature is in production and will result in your wallet being charged.`
@@ -87,11 +87,12 @@ bot.action("token:usdt", async (ctx) => {
 
 bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
 	const { token, network } = ctx.match.groups;
-	const directInvoice = await invoiceApp.getInvoiceWalletAddressFromBackend(
-		"1",
+	const directInvoice = await invoiceApp.getInvoiceWalletAddressFromBackend({
+		amount: PRICE,
 		token,
 		network,
-	);
+		customData: { name: "محصول آزمایشی" },
+	});
 	const expiredAt = new Intl.DateTimeFormat("fa-IR", {
 		dateStyle: "full",
 		timeStyle: "short",
