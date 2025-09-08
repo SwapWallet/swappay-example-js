@@ -41,6 +41,28 @@ class SwapPay {
         }
     }
 
+    async newDirectInvoice(
+        amount,
+        network,
+        ttl,
+        orderId,
+        customData,
+    ) {
+        try {
+            const r = await this.axios.post(`/v1/payment/${this.username}/invoice/direct`, {
+                amount,
+                network,
+                ttl,
+                orderId,
+                customData,
+            })
+            return r.data.result
+        } catch (error) {
+            console.error("ERROR CREATE DIRECT INVOICE", error)
+            throw error
+        }
+    }
+
     async getInvoiceById(invoiceId) {
         try {
             const r = await this.axios.get(`/v1/payment/${this.username}/invoice/${invoiceId}`)

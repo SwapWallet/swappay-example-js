@@ -60,6 +60,33 @@ class Invoice {
 
         return invoiceRes
     }
+
+    async getInvoiceWalletAddressFromBackend(
+        amount,
+        token,
+        network,
+        ttl = 3600,
+        orderId = null,
+        customData = null
+    ) {
+        // Format amount as expected by the API
+        const formattedAmount = {
+            number: amount,
+            unit: token,
+        };
+
+        // Ensure ttl is within valid range (300-21600 seconds)
+        const validTtl = Math.max(300, Math.min(21600, ttl));
+
+        // Use the SwapPay service method to create direct invoice
+        return await this.swapPay.newDirectInvoice(
+            formattedAmount,
+            network,
+            validTtl,
+            orderId,
+            customData
+        );
+    }
 }
 
 module.exports = Invoice

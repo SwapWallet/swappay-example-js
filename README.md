@@ -10,9 +10,9 @@ For more info please check our [API Docs](https://docs.swapwallet.app).
 npm start
 ```
 
-# Deploy
+## Deploy
 
-first fill `config.js` with your credentials and then run application with docker-compose:
+first copy `.env-example` to `.env` and fill env variables with your credentials and then run application with docker-compose:
 
 ```bash
 docker-compose up -d
