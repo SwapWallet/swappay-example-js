@@ -6,8 +6,23 @@ For more info please check our [API Docs](https://docs.swapwallet.app).
 
 ## Usage
 
+### Start
+
 ```bash
 npm start
+```
+
+### Format
+
+```bash
+# format files
+npx @biomejs/biome format --write
+
+# lint files and apply the safe fixes
+npx @biomejs/biome lint --write
+
+# run format, lint, etc. and apply the safe fixes
+npx @biomejs/biome check --write
 ```
 
 ## Deploy
