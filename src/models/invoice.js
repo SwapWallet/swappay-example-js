@@ -15,7 +15,7 @@ const invoiceSchema = new Schema({
 	},
 	paidAt: { type: Date, default: null },
 	paidAmount: { type: String, default: null },
-	paidToken: { type: String, default: null, enum: ["USDT", "TRX", "TON"] },
+	paidToken: { type: String, default: null },
 });
 
 const InvoiceModel = mongoose.model("Invoice", invoiceSchema);

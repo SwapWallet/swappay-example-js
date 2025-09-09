@@ -75,6 +75,7 @@ class Invoice {
 			swapPayId: invoiceRes.id,
 			amount,
 			token,
+			network,
 		});
 		await newInvoice.save();
 

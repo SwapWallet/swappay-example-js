@@ -1,10 +1,11 @@
 const axios = require("axios");
+const config = require("./config");
 
 class SwapPay {
 	constructor(swapWalletToken, username) {
 		this.username = username;
 		this.axios = axios.create({
-			baseURL: "https://swapwallet.app/api",
+			baseURL: config.swapPay.baseUrl,
 			timeout: 30 * 1000,
 			headers: {
 				Authorization: `Apikey ${swapWalletToken}`,
@@ -21,7 +22,7 @@ class SwapPay {
 					network,
 					ttl,
 					orderId,
-					customData,
+					customData: `${customData}`,
 				},
 			);
 			return r.data.result;

@@ -1,8 +1,19 @@
 const { Telegraf, Markup } = require("telegraf");
+const { HttpsProxyAgent } = require("https-proxy-agent");
+
 const config = require("./config");
 const Invoice = require("./invoice");
 
-const bot = new Telegraf(config.telegram.token);
+let botOptions = null;
+if (process.env.DEBUG === "true") {
+	botOptions = {
+		telegram: {
+			agent: new HttpsProxyAgent(config.telegram.proxyUrl),
+		},
+	};
+}
+
+const bot = new Telegraf(config.telegram.token, botOptions);
 const invoiceApp = new Invoice();
 const PRICE = "0.01";
 
@@ -28,7 +39,6 @@ bot.start(start);
 bot.action("main-menu", start);
 
 bot.action("show-item", async (ctx) => {
-	const userId = ctx.update.callback_query.from.id;
 	// const invoice = await invoiceApp.createInvoiceForUser(userId, "0.01")
 	// const directInvoice = await invoiceApp.getInvoiceWalletAddressFromBackend(userId, "0.01")
 
@@ -74,36 +84,39 @@ bot.action("token:usdt", async (ctx) => {
 	message += `*انتخاب شبکه‌ای که می‌خواهید تتر را با آن پرداخت کنید:*`;
 
 	await ctx.answerCbQuery(); // stop Telegram spinner
-	await ctx.editMessageText(message, {
+	await ctx.reply(message, {
 		parse_mode: "markdown",
 		...Markup.inlineKeyboard([
 			[Markup.button.callback("BSC", "coin:usdt-bsc")],
 			[Markup.button.callback("TON", "coin:usdt-ton")],
 			[Markup.button.callback("TRON", "coin:usdt-tron")],
-			[Markup.button.callback("‹ Back", "show-item")],
+			[Markup.button.callback("‹ بازگشت", "show-item")],
 		]),
 	});
 });
 
 bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
 	const { token, network } = ctx.match.groups;
+	const userId = ctx.update.callback_query.from.id;
+
 	const directInvoice = await invoiceApp.getInvoiceWalletAddressFromBackend({
 		amount: PRICE,
-		token,
-		network,
-		customData: { name: "محصول آزمایشی" },
+		token: token.toUpperCase(),
+		network: network.toUpperCase(),
+		userId,
+		customData: `{ name: "محصول آزمایشی" }`,
 	});
 	const expiredAt = new Intl.DateTimeFormat("fa-IR", {
-		dateStyle: "full",
+		dateStyle: "short",
 		timeStyle: "short",
 		timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 	}).format(new Date(directInvoice.expiredAt));
 	const links = directInvoice.links;
-	const amount = directInvoice.amount;
+	const amount = directInvoice.amount.amount.number;
 
 	const message = `
   لطفا دقیقا مبلغ ${amount} ${token.toUpperCase()} را به ادرس ولت زیر ارسال کنید:
-  ${directInvoice.walletAddress}
+  \`${directInvoice.walletAddress}\`
   
   این رسید در ${expiredAt} منقضی خواهد شد.
   `;
@@ -119,6 +132,23 @@ bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
 
 module.exports = {
 	async start() {
-		await bot.launch();
+		// Launch bot with polling enabled (default behavior)
+		await bot.launch({
+			polling: {
+				timeout: 30, // Polling timeout in seconds
+				limit: 100, // Maximum number of updates to fetch at once
+			},
+		});
+
+		console.log("Bot started with polling enabled");
+
+		// Enable graceful stop
+		process.once("SIGINT", () => bot.stop("SIGINT"));
+		process.once("SIGTERM", () => bot.stop("SIGTERM"));
+	},
+
+	// Method to stop the bot gracefully
+	async stop() {
+		await bot.stop();
 	},
 };
