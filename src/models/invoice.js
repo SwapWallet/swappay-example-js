@@ -16,6 +16,8 @@ const invoiceSchema = new Schema({
 	paidAt: { type: Date, default: null },
 	paidAmount: { type: String, default: null },
 	paidToken: { type: String, default: null },
+	customData: { type: String, default: null },
+	sentMessageToUser: { type: Boolean, default: false },
 });
 
 const InvoiceModel = mongoose.model("Invoice", invoiceSchema);

@@ -5,7 +5,7 @@ const config = require("./config");
 const Invoice = require("./invoice");
 
 let botOptions = null;
-if (process.env.DEBUG === "true") {
+if (process.env.USE_PROXY === "true") {
 	botOptions = {
 		telegram: {
 			agent: new HttpsProxyAgent(config.telegram.proxyUrl),
@@ -104,7 +104,7 @@ bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
 		token: token.toUpperCase(),
 		network: network.toUpperCase(),
 		userId,
-		customData: `{ name: "محصول آزمایشی" }`,
+		customData: `{ "name": "محصول آزمایشی" }`,
 	});
 	const expiredAt = new Intl.DateTimeFormat("fa-IR", {
 		dateStyle: "short",

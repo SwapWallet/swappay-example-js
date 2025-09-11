@@ -1,11 +1,21 @@
 const { Telegraf } = require("telegraf");
+const { HttpsProxyAgent } = require("https-proxy-agent");
 const config = require("./config");
 const SwapPay = require("./swapPay");
 const InvoiceModel = require("./models/invoice");
 
 class Invoice {
 	constructor() {
-		this.bot = new Telegraf(config.telegram.token);
+		let botOptions = null;
+		if (process.env.USE_PROXY === "true") {
+			botOptions = {
+				telegram: {
+					agent: new HttpsProxyAgent(config.telegram.proxyUrl),
+				},
+			};
+		}
+
+		this.bot = new Telegraf(config.telegram.token, botOptions);
 		this.swapPay = new SwapPay(
 			config.swapPay.apiKey,
 			config.swapPay.application,
@@ -16,11 +26,32 @@ class Invoice {
 	async checkInvoices() {
 		// fetch invoices that are active yet
 		const activeInvoices = await InvoiceModel.find({ status: "ACTIVE" });
+		const paidInvoices = await InvoiceModel.find({
+			status: "PAID",
+			sentMessageToUser: false,
+		});
+		// console.log(JSON.stringify(activeInvoices, null, 2))
+
+		for (const paidInvoice in paidInvoices) {
+			try {
+				await this.bot.telegram.sendMessage(
+					paidInvoice.userId,
+					`رسید ${paidInvoice.customData} با موفقیت پرداخت شد! 🎉`,
+				);
+				paidInvoice.sentMessageToUser = true;
+				await paidInvoice.save();
+			} catch (e) {
+				console.error(`cannot send message to telegram ${e}`);
+			}
+		}
 
 		for (const invoice of activeInvoices) {
 			// check invoice status with SwapPay API
 			const invoiceInfo = await this.swapPay.getInvoiceById(invoice.swapPayId);
-			const name = invoiceInfo.customData.name;
+			const name =
+				invoiceInfo.customData != null
+					? JSON.parse(invoiceInfo.customData).name
+					: null;
 
 			if (invoiceInfo.status === "PAID") {
 				// update invoice status in database, and notify user
@@ -28,13 +59,20 @@ class Invoice {
 				invoice.paidAt = invoiceInfo.paidAt;
 				invoice.paidAmount = invoiceInfo.paidAmount.number;
 				invoice.paidToken = invoiceInfo.paidAmount.unit;
+				invoice.customData = invoiceInfo.customData;
 				await invoice.save();
 
 				// you should do something else based on your service, like sending actual product to the user!
-				await this.bot.telegram.sendMessage(
-					invoice.userId,
-					`رسید ${name} با موفقیت پرداخت شد! 🎉`,
-				);
+				try {
+					await this.bot.telegram.sendMessage(
+						invoice.userId,
+						`رسید ${name} با موفقیت پرداخت شد! 🎉`,
+					);
+					invoice.sentMessageToUser = true;
+					await invoice.save();
+				} catch (e) {
+					console.error(`cannot send message to telegram ${e}`);
+				}
 			} else if (invoiceInfo.status !== "ACTIVE") {
 				// update invoice status in database to prevent future checks
 				invoice.status = invoiceInfo.status;
