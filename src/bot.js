@@ -121,14 +121,16 @@ bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
   این رسید در ${expiredAt} منقضی خواهد شد.
   `;
 
-  const linkFaNames = {
-  	"SWAP_WALLET": "SwapWallet",
-  	"TRUST_WALLET": "Trust Wallet",
-  	"TON_KEEPER": "Tonkeeper",
-  	"TONHUB": "Tonhub",
-  	"MYTONWALLET": "MyTonWallet"
-  };
-	const buttons = links.map((link) => [Markup.button.url(linkFaNames[link.name], link.url)]);
+	const linkFaNames = {
+		SWAP_WALLET: "SwapWallet",
+		TRUST_WALLET: "Trust Wallet",
+		TON_KEEPER: "Tonkeeper",
+		TONHUB: "Tonhub",
+		MYTONWALLET: "MyTonWallet",
+	};
+	const buttons = links.map((link) => [
+		Markup.button.url(linkFaNames[link.name], link.url),
+	]);
 
 	await ctx.answerCbQuery(); // stop Telegram spinner
 	await ctx.reply(message, {
