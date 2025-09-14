@@ -7,9 +7,9 @@ async function main() {
 		await db.connectToDB();
 		const invoiceApp = new Invoice();
 
-		const INVOICE_CHECK_INTERVAL = 15 * 1000; // 15 seconds in milliseconds
+		const INVOICE_CHECK_INTERVAL = 30 * 1000;
 
-		console.log("Starting invoice checker - will run every 2 minutes");
+		console.log("Starting invoice checker - will run every 30 seconds");
 
 		// Run initial check
 		try {

@@ -20,11 +20,11 @@ const PRICE = "0.01";
 async function start(ctx) {
 	// Invoice checking is now handled by the periodic interval system in index.js
 
-	let message = `فروشگاه نمایشی یک فروشنده‌ی آزمایشی است که با [SwapPay API](https://docs.swapwallet.app/#swappay) یکپارچه شده و آینده‌ی پرداخت‌های رمزارزی آسان و جهانی را به نمایش می‌گذارد.  روی دکمه‌ی زیر بزنید و یک خرید آزمایشی انجام دهید تا جریان پرداخت را امتحان کنید.`;
+	let message = `فروشگاه گیم دمو یک فروشگاه آزمایشی است که با [SwapPay API](https://docs.swapwallet.app/#swappay) یکپارچه شده و آینده‌ی پرداخت‌های رمزارزی آسان و جهانی را به نمایش می‌گذارد.  روی دکمه‌ی زیر بزنید و یک خرید آزمایشی انجام دهید تا مسیر پرداخت را امتحان کنید.`;
 	message += "\n\n";
 
 	message +=
-		"می‌توانید کد منبع این دموی آزمایشی را در [github.com/SwapWallet](https://github.com/SwapWallet/swappay-example-js) پیدا کنید.";
+		"می‌توانید کد منبع این دموی پرداخت را در [github.com/SwapWallet](https://github.com/SwapWallet/swappay-example-js) پیدا کنید.";
 
 	await ctx.reply(message, {
 		parse_mode: "markdown",
@@ -42,7 +42,7 @@ bot.action("show-item", async (ctx) => {
 	// const invoice = await invoiceApp.createInvoiceForUser(userId, "0.01")
 	// const directInvoice = await invoiceApp.getInvoiceWalletAddressFromBackend(userId, "0.01")
 
-	let message = `*محصول آزمایشی*`;
+	let message = `*Call of Duty (PS5)*`;
 	message += `\n\n`;
 
 	message += `*قیمت:* ${PRICE} دلار`;
@@ -72,7 +72,7 @@ bot.action("show-item", async (ctx) => {
 });
 
 bot.action("token:usdt", async (ctx) => {
-	let message = `*محصول آزمایشی*`;
+	let message = `*Call of Duty (PS5)*`;
 	message += `\n\n`;
 
 	message += `*قیمت:* ${PRICE} دلار`;
@@ -104,7 +104,7 @@ bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
 		token: token.toUpperCase(),
 		network: network.toUpperCase(),
 		userId,
-		customData: `{ "name": "محصول آزمایشی" }`,
+		customData: `{ "name": "Call of Duty (PS5)" }`,
 	});
 	const expiredAt = new Intl.DateTimeFormat("fa-IR", {
 		dateStyle: "short",
@@ -121,7 +121,14 @@ bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
   این رسید در ${expiredAt} منقضی خواهد شد.
   `;
 
-	const buttons = links.map((link) => [Markup.button.url(link.name, link.url)]);
+  const linkFaNames = {
+  	"SWAP_WALLET": "SwapWallet",
+  	"TRUST_WALLET": "Trust Wallet",
+  	"TON_KEEPER": "Tonkeeper",
+  	"TONHUB": "Tonhub",
+  	"MYTONWALLET": "MyTonWallet"
+  };
+	const buttons = links.map((link) => [Markup.button.url(linkFaNames[link.name], link.url)]);
 
 	await ctx.answerCbQuery(); // stop Telegram spinner
 	await ctx.reply(message, {
