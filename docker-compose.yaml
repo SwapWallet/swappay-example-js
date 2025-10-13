@@ -7,6 +7,6 @@ services:
     ports:
       - 27017:27017
 
-  # app:
-  #   restart: unless-stopped
-  #   build: .
+  app:
+    restart: unless-stopped
+    build: .
