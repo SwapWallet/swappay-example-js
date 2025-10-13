@@ -16,7 +16,7 @@ class SwapPay {
 	async newDirectInvoice(amount, network, ttl, orderId, customData) {
 		try {
 			const r = await this.axios.post(
-				`/v1/payment/${this.username}/invoice/direct`,
+				`/v2/payment/${this.username}/invoices/temporary-wallet`,
 				{
 					amount,
 					network,
@@ -34,7 +34,7 @@ class SwapPay {
 
 	async getInvoiceById(invoiceId) {
 		try {
-			const r = await this.axios.get(`/v1/payment/invoice/${invoiceId}/info`);
+			const r = await this.axios.get(`/v2/payment/${this.username}/invoices/${invoiceId}/info`);
 			return r.data.result;
 		} catch (error) {
 			console.error("ERROR CHECK INVOICE", error);
