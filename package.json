@@ -17,7 +17,7 @@
 		"dotenv": "^17.2.2",
 		"mongoose": "^7.5.0",
 		"nodemon": "^3.0.1",
-		"telegraf": "^4.12.2"
+		"telegraf": "^4.12.2",
 		"https-proxy-agent": "7.0.6"
 	},
 	"devDependencies": {
