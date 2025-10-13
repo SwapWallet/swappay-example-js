@@ -21,6 +21,6 @@
 		"https-proxy-agent": "7.0.6"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.2.3",
+		"@biomejs/biome": "2.2.3"
 	}
 }
