@@ -22,22 +22,31 @@ class SwapPay {
 					network,
 					ttl,
 					orderId,
+					underPaidCoveragePercent: null,
 					customData: `${customData}`,
 				},
 			);
 			return r.data.result;
 		} catch (error) {
-			console.error("ERROR CREATE DIRECT INVOICE", error);
+			console.error(
+				"ERROR CREATE DIRECT INVOICE",
+				JSON.stringify(error, Object.getOwnPropertyNames(error), 2),
+			);
 			throw error;
 		}
 	}
 
 	async getInvoiceById(invoiceId) {
 		try {
-			const r = await this.axios.get(`/v2/payment/${this.username}/invoices/${invoiceId}/info`);
+			const r = await this.axios.get(
+				`/v2/payment/${this.username}/invoices/${invoiceId}/info`,
+			);
 			return r.data.result;
 		} catch (error) {
-			console.error("ERROR CHECK INVOICE", error);
+			console.error(
+				"ERROR CHECK INVOICE",
+				JSON.stringify(error, Object.getOwnPropertyNames(error), 2),
+			);
 			throw error;
 		}
 	}
