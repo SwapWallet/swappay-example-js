@@ -82,10 +82,9 @@ class Invoice {
 	}
 
 	async getInvoiceWalletAddressFromBackend({
-		requestedAmount,
-		requestedToken,
 		amount,
 		token,
+		allowedToken,
 		network,
 		userId,
 		ttl = 3600,
@@ -98,18 +97,13 @@ class Invoice {
 			unit: token,
 		};
 
-		const formattedRequestedAmount = {
-			number: requestedAmount,
-			unit: requestedToken,
-		};
-
 		// Ensure ttl is within valid range (300-21600 seconds)
 		const validTtl = Math.max(300, Math.min(21600, ttl));
 
 		// Use the SwapPay service method to create direct invoice
 		const invoiceRes = await this.swapPay.newDirectInvoice(
-			formattedRequestedAmount,
 			formattedAmount,
+			allowedToken,
 			network,
 			validTtl,
 			orderId,
@@ -119,10 +113,10 @@ class Invoice {
 		const newInvoice = new InvoiceModel({
 			userId,
 			swapPayId: invoiceRes.id,
-			requestedValue,
-			requestedToken,
 			amount,
 			token,
+			shouldPayAmount: invoiceRes.amount.amount.number,
+			shouldPayToken: invoiceRes.amount.amount.unit,
 			network,
 		});
 		await newInvoice.save();

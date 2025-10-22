@@ -4,8 +4,8 @@ const { Schema } = mongoose;
 const invoiceSchema = new Schema({
 	userId: { type: Number, required: true }, // Use {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true} in production!
 	swapPayId: { type: String, required: true },
-	requestedValue: { type: String, required: true },
-	requestedToken: { type: String, required: true, enum: ["USDT", "TRX", "TON"] },
+	shouldPayAmount: { type: String, required: true },
+	shouldPayToken: { type: String, required: true, enum: ["USDT", "TRX", "TON"] },
 	amount: { type: String, required: true },
 	token: { type: String, required: true, enum: ["USDT", "TRX", "TON"] },
 	network: { type: String, required: true, enum: ["TON", "TRON", "BSC"] },

@@ -89,7 +89,8 @@ bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
 
 	const directInvoice = await invoiceApp.getInvoiceWalletAddressFromBackend({
 		amount: PRICE,
-		token: token.toUpperCase(),
+		token: "USDT",
+		allowedToken: token.toUpperCase(),
 		network: network.toUpperCase(),
 		userId,
 		customData: `{ "name": "Call of Duty (PS5)" }`,
