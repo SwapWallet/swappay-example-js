@@ -119,7 +119,7 @@ class Invoice {
 		const newInvoice = new InvoiceModel({
 			userId,
 			swapPayId: invoiceRes.id,
-			requestedAmount,
+			requestedValue,
 			requestedToken,
 			amount,
 			token,
