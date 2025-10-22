@@ -13,11 +13,12 @@ class SwapPay {
 		});
 	}
 
-	async newDirectInvoice(amount, network, ttl, orderId, customData) {
+	async newDirectInvoice(requestedAmount, amount, network, ttl, orderId, customData) {
 		try {
 			const r = await this.axios.post(
 				`/v2/payment/${this.username}/invoices/temporary-wallet`,
 				{
+					requestedAmount,
 					amount,
 					network,
 					ttl,

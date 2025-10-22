@@ -15,7 +15,6 @@ if (process.env.USE_PROXY === "true") {
 
 const bot = new Telegraf(config.telegram.token, botOptions);
 const invoiceApp = new Invoice();
-const PRICE = "0.01";
 
 async function start(ctx) {
 	// Invoice checking is now handled by the periodic interval system in index.js
@@ -39,17 +38,11 @@ bot.start(start);
 bot.action("main-menu", start);
 
 bot.action("show-item", async (ctx) => {
-	// const invoice = await invoiceApp.createInvoiceForUser(userId, "0.01")
-	// const directInvoice = await invoiceApp.getInvoiceWalletAddressFromBackend(userId, "0.01")
-
 	let message = `*Call of Duty (PS5)*`;
 	message += `\n\n`;
 
 	message += `*قیمت:* ${PRICE} دلار`;
 	message += `\n\n`;
-
-	// message += `*Warning!* The pay feature is in production and will result in your wallet being charged.`
-	// message += `\n\n`
 
 	message += `*انتخاب توکنی که می‌خواهید پرداخت را با آن انجام دهید:*`;
 
@@ -61,10 +54,7 @@ bot.action("show-item", async (ctx) => {
 			...Markup.inlineKeyboard([
 				[Markup.button.callback("USDT", "token:usdt")],
 				[Markup.button.callback("TON", "coin:ton-ton")],
-				[Markup.button.callback("TRON", "coin:trx-tron")],
-				// [Markup.button.url('⚡ Wallet Payment', invoice.paymentLinks.find(i => i.type === 'TELEGRAM_WEBAPP').url)],
-				// [Markup.button.url('🤖Bot Payment', invoice.paymentLinks.find(i => i.type === 'TELEGRAM_BOT').url)],
-				// [Markup.button.url('🌐Website Payment', invoice.paymentLinks.find(i => i.type === 'WEBSITE').url)],
+				[Markup.button.callback("TRX", "coin:trx-tron")],
 				[Markup.button.callback("‹ بازگشت", "main-menu")],
 			]),
 		},
@@ -77,9 +67,6 @@ bot.action("token:usdt", async (ctx) => {
 
 	message += `*قیمت:* ${PRICE} دلار`;
 	message += `\n\n`;
-
-	// message += `*Warning!* The pay feature is in production and will result in your wallet being charged.`
-	// message += `\n\n`
 
 	message += `*انتخاب شبکه‌ای که می‌خواهید تتر را با آن پرداخت کنید:*`;
 
@@ -121,7 +108,7 @@ bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
   این رسید در ${expiredAt} منقضی خواهد شد.
   `;
 
-	const linkFaNames = {
+	const linksEnNames = {
 		SWAP_WALLET: "SwapWallet",
 		TRUST_WALLET: "Trust Wallet",
 		TON_KEEPER: "Tonkeeper",
@@ -129,7 +116,7 @@ bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
 		MYTONWALLET: "MyTonWallet",
 	};
 	const buttons = links.map((link) => [
-		Markup.button.url(linkFaNames[link.name], link.url),
+		Markup.button.url(linksEnNames[link.name], link.url),
 	]);
 
 	await ctx.answerCbQuery(); // stop Telegram spinner
