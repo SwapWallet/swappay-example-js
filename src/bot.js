@@ -15,6 +15,7 @@ if (process.env.USE_PROXY === "true") {
 
 const bot = new Telegraf(config.telegram.token, botOptions);
 const invoiceApp = new Invoice();
+const PRICE = "0.01";
 
 async function start(ctx) {
 	// Invoice checking is now handled by the periodic interval system in index.js
