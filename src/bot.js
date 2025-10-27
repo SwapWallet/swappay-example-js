@@ -98,16 +98,16 @@ bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
 	const expiredAt = new Intl.DateTimeFormat("fa-IR", {
 		dateStyle: "short",
 		timeStyle: "short",
-		timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+		timeZone: "Asia/Tehran",
 	}).format(new Date(directInvoice.expiredAt));
 	const links = directInvoice.links;
 	const amount = directInvoice.amount.amount.number;
 
 	const message = `
-  لطفا دقیقا مبلغ ${amount} ${token.toUpperCase()} را به ادرس ولت زیر ارسال کنید:
+  لطفا دقیقا مبلغ ${amount} ${token.toUpperCase()} را روی شبکه ${network.toUpperCase()} به ادرس ولت زیر ارسال کنید:
   \`${directInvoice.walletAddress}\`
   
-  این رسید در ${expiredAt} منقضی خواهد شد.
+  این رسید در ${expiredAt} به وقت تهران منقضی خواهد شد.
   `;
 
 	const linksEnNames = {
