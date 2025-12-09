@@ -117,9 +117,17 @@ bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
 		TONHUB: "Tonhub",
 		MYTONWALLET: "MyTonWallet",
 	};
-	const buttons = links.map((link) => [
-		Markup.button.url(linksEnNames[link.name], link.url),
-	]);
+	const buttons = [
+		...links.map((link) => [
+			Markup.button.url(linksEnNames[link.name], link.url),
+		]),
+		[
+			Markup.button.url(
+				"درگاه پرداخت SwapPay",
+				`https://swapwallet.app/swap-pay?invoiceId=${directInvoice.id}`,
+			),
+		],
+	];
 
 	await ctx.answerCbQuery(); // stop Telegram spinner
 	await ctx.reply(message, {
