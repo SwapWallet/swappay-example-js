@@ -111,7 +111,8 @@ bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
   `;
 
 	const linksEnNames = {
-		SWAP_WALLET: "SwapWallet",
+		SWAP_WALLET_WEBSITE: "SwapWallet Website",
+		SWAP_WALLET: "SwapWallet App",
 		TRUST_WALLET: "Trust Wallet",
 		TON_KEEPER: "Tonkeeper",
 		TONHUB: "Tonhub",
