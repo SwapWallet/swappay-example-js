@@ -101,6 +101,7 @@ bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
 		timeZone: "Asia/Tehran",
 	}).format(new Date(directInvoice.expiredAt));
 	const links = directInvoice.links;
+	console.log(JSON.stringify(links, null, 2));
 	const amount = directInvoice.amount.amount.number;
 
 	const message = `
