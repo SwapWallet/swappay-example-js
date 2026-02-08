@@ -100,7 +100,7 @@ bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
 		timeStyle: "short",
 		timeZone: "Asia/Tehran",
 	}).format(new Date(directInvoice.expiredAt));
-	const links = directInvoice.links;
+	const links = Array.isArray(directInvoice.links) ? directInvoice.links : [];
 	console.log(JSON.stringify(links, null, 2));
 	const amount = directInvoice.amount.amount.number;
 
@@ -119,10 +119,30 @@ bot.action(/^coin:(?<token>[a-z]+)-(?<network>[a-z]+)$/i, async (ctx) => {
 		TONHUB: "Tonhub",
 		MYTONWALLET: "MyTonWallet",
 	};
+	const getLinkButtonText = (name) => {
+		if (!name) return "Open wallet";
+		const key = String(name).trim();
+		if (!key) return "Open wallet";
+		const normalized =
+			linksEnNames[key] ||
+			linksEnNames[key.toUpperCase()] ||
+			key.replace(/[_-]+/g, " ");
+
+		return normalized && String(normalized).trim().length > 0
+			? String(normalized).trim()
+			: "Open wallet";
+	};
 	const buttons = [
-		...links.map((link) => [
-			Markup.button.url(linksEnNames[link.name], link.url),
-		]),
+		...links
+			.filter(
+				(link) =>
+					link &&
+					typeof link.url === "string" &&
+					link.url.trim().length > 0,
+			)
+			.map((link) => [
+				Markup.button.url(getLinkButtonText(link.name), link.url.trim()),
+			]),
 		[
 			Markup.button.url(
 				"درگاه پرداخت SwapPay",
