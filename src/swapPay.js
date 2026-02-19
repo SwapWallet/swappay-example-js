@@ -13,6 +13,33 @@ class SwapPay {
 		});
 	}
 
+	async newResid(
+		amount,
+		ttl,
+		orderId,
+		customData,
+	) {
+		try {
+			const r = await this.axios.post(
+				`/v1/payment/${this.username}/resid`,
+				{
+					amount,
+					ttl,
+					orderId,
+					description: 'resid from demo bot',
+					customData: `${customData}`,
+				},
+			);
+			return r.data.result;
+		} catch (error) {
+			console.error(
+				"ERROR CREATE RESID",
+				JSON.stringify(error, Object.getOwnPropertyNames(error), 2),
+			);
+			throw error;
+		}
+	}
+
 	async newDirectInvoice(
 		amount,
 		allowedToken,

@@ -53,6 +53,7 @@ bot.action("show-item", async (ctx) => {
 			parse_mode: "markdown",
 			caption: message,
 			...Markup.inlineKeyboard([
+				[Markup.button.callback("USDT (Resid)", "resid:irt")],
 				[Markup.button.callback("USDT", "token:usdt")],
 				[Markup.button.callback("TON", "coin:ton-ton")],
 				[Markup.button.callback("TRX", "coin:trx-tron")],
@@ -80,6 +81,49 @@ bot.action("token:usdt", async (ctx) => {
 			[Markup.button.callback("TRON", "coin:usdt-tron")],
 			[Markup.button.callback("‹ بازگشت", "show-item")],
 		]),
+	});
+});
+
+bot.action(/^resid:irt$/i, async (ctx) => {
+	const userId = ctx.update.callback_query.from.id;
+
+	const resid = await invoiceApp.getResidFromBackend({
+		amount: '10000',
+		userId,
+		customData: `{ "name": "Call of Duty (PS5)" }`,
+	});
+	const expiredAt = new Intl.DateTimeFormat("fa-IR", {
+		dateStyle: "short",
+		timeStyle: "short",
+		timeZone: "Asia/Tehran",
+	}).format(new Date(resid.expiredAt));
+	const links = Array.isArray(resid.paymentLinks) ? resid.paymentLinks : [];
+	console.log(JSON.stringify(links, null, 2));
+	const amount = '10000';
+
+	const message = `
+	رسید تتری شما به ارزش 10000 هزارتومان ایجاد شد. جهت پرداخت، روی لینک زیر کلیک کنید:
+  
+  این رسید در ${expiredAt} به وقت تهران منقضی خواهد شد.
+  `;
+
+	const buttons = [
+		...links
+			.filter(
+				(link) =>
+					link &&
+					typeof link.url === "string" &&
+					link.url.trim().length > 0,
+			)
+			.map((link) => [
+				Markup.button.url("پرداخت با سواپ‌ولت", link.url.trim()),
+			]),
+	];
+
+	await ctx.answerCbQuery(); // stop Telegram spinner
+	await ctx.reply(message, {
+		parse_mode: "markdown",
+		...Markup.inlineKeyboard(buttons),
 	});
 });
 

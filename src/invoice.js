@@ -123,6 +123,44 @@ class Invoice {
 
 		return invoiceRes;
 	}
+
+	async getResidFromBackend({
+		amount,
+		userId,
+		ttl = 3600,
+		orderId = null,
+		customData = null,
+	}) {
+		// Format amount as expected by the API
+		const formattedAmount = {
+			number: amount,
+			unit: 'IRT',
+		};
+
+		// Ensure ttl is within valid range (300-21600 seconds)
+		const validTtl = Math.max(300, Math.min(21600, ttl));
+
+		// Use the SwapPay service method to create direct invoice
+		const residRes = await this.swapPay.newResid(
+			formattedAmount,
+			validTtl,
+			orderId,
+			customData,
+		);
+
+		const newResid = new InvoiceModel({
+			userId,
+			swapPayId: invoiceRes.id,
+			amount,
+			token: 'IRT',
+			shouldPayAmount: amount,
+			shouldPayToken: 'IRT',
+			network: 'BSC',
+		});
+		await newResid.save();
+
+		return residRes;
+	}
 }
 
 module.exports = Invoice;
