@@ -8,7 +8,7 @@ const invoiceSchema = new Schema({
 	shouldPayToken: {
 		type: String,
 		required: true,
-		enum: ["USDT", "TRX", "TON", "IR"],
+		enum: ["USDT", "TRX", "TON", "IRT"],
 	},
 	amount: { type: String, required: true },
 	token: { type: String, required: true, enum: ["USDT", "TRX", "TON", "IRT"] },
