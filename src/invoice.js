@@ -150,7 +150,7 @@ class Invoice {
 
 		const newResid = new InvoiceModel({
 			userId,
-			swapPayId: invoiceRes.id,
+			swapPayId: residRes.id,
 			amount,
 			token: 'IRT',
 			shouldPayAmount: amount,

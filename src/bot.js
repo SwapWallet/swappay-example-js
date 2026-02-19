@@ -84,7 +84,7 @@ bot.action("token:usdt", async (ctx) => {
 	});
 });
 
-bot.action(/^resid:irt$/i, async (ctx) => {
+bot.action("resid:irt", async (ctx) => {
 	const userId = ctx.update.callback_query.from.id;
 
 	const resid = await invoiceApp.getResidFromBackend({
@@ -99,7 +99,6 @@ bot.action(/^resid:irt$/i, async (ctx) => {
 	}).format(new Date(resid.expiredAt));
 	const links = Array.isArray(resid.paymentLinks) ? resid.paymentLinks : [];
 	console.log(JSON.stringify(links, null, 2));
-	const amount = '10000';
 
 	const message = `
 	رسید تتری شما به ارزش 10000 هزارتومان ایجاد شد. جهت پرداخت، روی لینک زیر کلیک کنید:
@@ -108,16 +107,9 @@ bot.action(/^resid:irt$/i, async (ctx) => {
   `;
 
 	const buttons = [
-		...links
-			.filter(
-				(link) =>
-					link &&
-					typeof link.url === "string" &&
-					link.url.trim().length > 0,
-			)
-			.map((link) => [
-				Markup.button.url("پرداخت با سواپ‌ولت", link.url.trim()),
-			]),
+		...links.map((link) => [
+			Markup.button.url("پرداخت با سواپ‌ولت", link.url.trim()),
+		]),
 	];
 
 	await ctx.answerCbQuery(); // stop Telegram spinner
