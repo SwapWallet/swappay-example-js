@@ -27,6 +27,7 @@ class SwapPay {
 					ttl,
 					orderId,
 					description: 'resid from demo bot',
+					returnUrl: "https://swapwallet.app",
 					customData: `${customData}`,
 				},
 			);
