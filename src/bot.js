@@ -106,9 +106,14 @@ bot.action("resid:irt", async (ctx) => {
   این رسید در ${expiredAt} به وقت تهران منقضی خواهد شد.
   `;
 
+	const linksEnNames = {
+		TELEGRAM_WEBAPP: "SwapWallet App",
+		WEBSITE: "SwapWallet Website",
+	};
+
 	const buttons = [
 		...links.map((link) => [
-			Markup.button.url("پرداخت با سواپ‌ولت", link.url.trim()),
+			Markup.button.url(linksEnNames[link.type], link.url.trim()),
 		]),
 	];
 
