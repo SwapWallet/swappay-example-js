@@ -8,7 +8,7 @@ class SwapPay {
 			baseURL: config.swapPay.baseUrl,
 			timeout: 30 * 1000,
 			headers: {
-				Authorization: `Apikey ${swapWalletToken}`,
+				Authorization: `Bearer ${swapWalletToken}`,
 			},
 		});
 	}
@@ -27,7 +27,7 @@ class SwapPay {
 					ttl,
 					orderId,
 					description: 'resid from demo bot',
-					returnUrl: "https://swapwallet.app",
+					returnUrl: "https://webhook.site",
 					customData: `${customData}`,
 				},
 			);
