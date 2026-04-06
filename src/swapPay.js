@@ -21,7 +21,7 @@ class SwapPay {
 	) {
 		try {
 			const r = await this.axios.post(
-				`/v1/payment/${this.username}/resid`,
+				`/v1/merchants/resid`,
 				{
 					amount,
 					ttl,
@@ -51,7 +51,7 @@ class SwapPay {
 	) {
 		try {
 			const r = await this.axios.post(
-				`/v2/payment/${this.username}/invoices/temporary-wallet`,
+				`/v1/merchants/invoices/temporary-wallet`,
 				{
 					amount,
 					allowedToken,
@@ -75,7 +75,7 @@ class SwapPay {
 	async getInvoiceById(invoiceId) {
 		try {
 			const r = await this.axios.get(
-				`/v2/payment/${this.username}/invoices/${invoiceId}`,
+				`/v1/merchants/invoices/${invoiceId}`,
 			);
 			return r.data.result;
 		} catch (error) {
