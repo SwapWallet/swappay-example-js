@@ -24,60 +24,59 @@ class Invoice {
 
 	// in production, you should use some lock mechanism to prevent multiple invoice checks (concurrency issues)
 	async checkInvoices() {
-		// fetch invoices that are active yet
-		const activeInvoices = await InvoiceModel.find({ status: "ACTIVE" });
-		const paidInvoices = await InvoiceModel.find({
-			status: "PAID",
+		// Retry notifications for invoices that were paid but not yet messaged
+		// (e.g. a previous Telegram send failed).
+		const pendingNotifications = await InvoiceModel.find({
+			status: { $in: ["PAID", "SETTLED"] },
 			sentMessageToUser: false,
 		});
-		// console.log(JSON.stringify(activeInvoices, null, 2))
-
-		for (const paidInvoice in paidInvoices) {
-			try {
-				await this.bot.telegram.sendMessage(
-					paidInvoice.userId,
-					`رسید ${paidInvoice.customData} با موفقیت پرداخت شد! 🎉`,
-				);
-				paidInvoice.sentMessageToUser = true;
-				await paidInvoice.save();
-			} catch (e) {
-				console.error(`cannot send message to telegram ${e}`);
-			}
+		for (const invoice of pendingNotifications) {
+			await this.notifyPaid(invoice);
 		}
 
+		// Poll still-active invoices for a status change.
+		const activeInvoices = await InvoiceModel.find({ status: "ACTIVE" });
 		for (const invoice of activeInvoices) {
-			// check invoice status with SwapPay API
-			const invoiceInfo = await this.swapPay.getInvoiceById(invoice.swapPayId);
-			const name =
-				invoiceInfo.customData != null
-					? JSON.parse(invoiceInfo.customData).name
-					: null;
+			const info = await this.swapPay.getInvoiceById(invoice.swapPayId);
+			if (info.status === "ACTIVE") continue;
 
-			if (invoiceInfo.status === "PAID") {
-				// update invoice status in database, and notify user
-				invoice.status = "PAID";
-				invoice.paidAt = invoiceInfo.paidAt;
-				invoice.paidAmount = invoiceInfo.paidAmount.number;
-				invoice.paidToken = invoiceInfo.paidAmount.unit;
-				invoice.customData = invoiceInfo.customData;
+			invoice.status = info.status;
+			invoice.customData = info.customData ?? invoice.customData;
+
+			if (info.status === "PAID" || info.status === "SETTLED") {
+				invoice.paidAt = info.paidAt;
+				invoice.paidAmount = info.paidAmount?.number ?? null;
+				invoice.paidToken = info.paidAmount?.unit ?? null;
 				await invoice.save();
-
-				// you should do something else based on your service, like sending actual product to the user!
-				try {
-					await this.bot.telegram.sendMessage(
-						invoice.userId,
-						`رسید ${name} با موفقیت پرداخت شد! 🎉`,
-					);
-					invoice.sentMessageToUser = true;
-					await invoice.save();
-				} catch (e) {
-					console.error(`cannot send message to telegram ${e}`);
-				}
-			} else if (invoiceInfo.status !== "ACTIVE") {
-				// update invoice status in database to prevent future checks
-				invoice.status = invoiceInfo.status;
+				await this.notifyPaid(invoice);
+			} else {
+				// CANCELED / EXPIRED — just persist so we stop polling it.
 				await invoice.save();
 			}
+		}
+	}
+
+	// Notify the buyer that their invoice was paid. In a real service you would
+	// also deliver the purchased product here.
+	async notifyPaid(invoice) {
+		const name = this.productName(invoice.customData);
+		try {
+			await this.bot.telegram.sendMessage(
+				invoice.userId,
+				`سفارش «${name ?? "شما"}» با موفقیت پرداخت شد! 🎉`,
+			);
+			invoice.sentMessageToUser = true;
+			await invoice.save();
+		} catch (e) {
+			console.error(`cannot send message to telegram ${e}`);
+		}
+	}
+
+	productName(customData) {
+		try {
+			return customData ? JSON.parse(customData).name : null;
+		} catch {
+			return null;
 		}
 	}
 
@@ -134,7 +133,7 @@ class Invoice {
 		// Format amount as expected by the API
 		const formattedAmount = {
 			number: amount,
-			unit: 'IRT',
+			unit: "IRT",
 		};
 
 		// Ensure ttl is within valid range (300-21600 seconds)
@@ -152,10 +151,10 @@ class Invoice {
 			userId,
 			swapPayId: residRes.id,
 			amount,
-			token: 'IRT',
+			token: "IRT",
 			shouldPayAmount: amount,
-			shouldPayToken: 'IRT',
-			network: 'BSC',
+			shouldPayToken: "IRT",
+			network: "BSC",
 		});
 		await newResid.save();
 

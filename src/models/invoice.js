@@ -17,7 +17,8 @@ const invoiceSchema = new Schema({
 		type: String,
 		required: true,
 		default: "ACTIVE",
-		enum: ["ACTIVE", "CANCELLED", "PAID", "EXPIRED"],
+		// Matches the exchange's ApplicationInvoiceStatusEnum.
+		enum: ["ACTIVE", "PAID", "SETTLED", "EXPIRED", "CANCELED"],
 	},
 	paidAt: { type: Date, default: null },
 	paidAmount: { type: String, default: null },
