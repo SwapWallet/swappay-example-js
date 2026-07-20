@@ -1,65 +1,165 @@
-const {Telegraf} = require("telegraf");
+const { Telegraf } = require("telegraf");
+const { HttpsProxyAgent } = require("https-proxy-agent");
 const config = require("./config");
-const SwapPay = require('./swapPay')
-const InvoiceModel = require('./models/invoice')
+const SwapPay = require("./swapPay");
+const InvoiceModel = require("./models/invoice");
 
 class Invoice {
-    constructor() {
-        this.bot = new Telegraf(config.telegram.token);
-        this.swapPay = new SwapPay(config.swapPay.apiKey, config.swapPay.application)
-    }
+	constructor() {
+		let botOptions = null;
+		if (process.env.USE_PROXY === "true") {
+			botOptions = {
+				telegram: {
+					agent: new HttpsProxyAgent(config.telegram.proxyUrl),
+				},
+			};
+		}
 
-    // in production, you should use some lock mechanism to prevent multiple invoice checks (concurrency issues)
-    async checkInvoices() {
-        // fetch invoices that are active yet
-        const activeInvoices = await InvoiceModel.find({status: 'ACTIVE'})
+		this.bot = new Telegraf(config.telegram.token, botOptions);
+		this.swapPay = new SwapPay(
+			config.swapPay.apiKey,
+			config.swapPay.application,
+		);
+	}
 
-        for (const invoice of activeInvoices) {
-            // check invoice status with SwapPay API
-            const invoiceStatus = await this.swapPay.getInvoiceById(invoice.swapPayId)
+	// in production, you should use some lock mechanism to prevent multiple invoice checks (concurrency issues)
+	async checkInvoices() {
+		// Retry notifications for invoices that were paid but not yet messaged
+		// (e.g. a previous Telegram send failed).
+		const pendingNotifications = await InvoiceModel.find({
+			status: { $in: ["PAID", "SETTLED"] },
+			sentMessageToUser: false,
+		});
+		for (const invoice of pendingNotifications) {
+			await this.notifyPaid(invoice);
+		}
 
-            if (invoiceStatus.status === 'PAID') {
-                // update invoice status in database, and notify user
-                invoice.status = 'PAID'
-                invoice.paidAt = invoiceStatus.paidAt
-                await invoice.save()
+		// Poll still-active invoices for a status change.
+		const activeInvoices = await InvoiceModel.find({ status: "ACTIVE" });
+		for (const invoice of activeInvoices) {
+			const info = await this.swapPay.getInvoiceById(invoice.swapPayId);
+			if (info.status === "ACTIVE") continue;
 
-                // you should do something else based on your service, like sending actual product to the user!
-                await this.bot.telegram.sendMessage(invoice.userId, `Your invoice has been paid! 🎉`)
-            } else if (invoiceStatus.status !== 'ACTIVE') {
-                // update invoice status in database to prevent future checks
-                invoice.status = invoiceStatus.status
-                await invoice.save()
-            }
-        }
-    }
+			invoice.status = info.status;
+			invoice.customData = info.customData ?? invoice.customData;
 
-    // for simplicity, we create swap-pay invoice first and then create internal-invoice model, but maybe you want to create your invoice first and then create swap-pay invoice in production
-    async createInvoiceForUser(userId, amount) {
-        const token = 'USDT'
+			if (info.status === "PAID" || info.status === "SETTLED") {
+				invoice.paidAt = info.paidAt;
+				invoice.paidAmount = info.paidAmount?.number ?? null;
+				invoice.paidToken = info.paidAmount?.unit ?? null;
+				await invoice.save();
+				await this.notifyPaid(invoice);
+			} else {
+				// CANCELED / EXPIRED — just persist so we stop polling it.
+				await invoice.save();
+			}
+		}
+	}
 
-        // first, we create an invoice with SwapPay API
-        const invoiceRes = await this.swapPay.newInvoice(
-            amount,
-            token, // user should pay invoice with USDT token (there is no network fee here!)
-            3600,
-            null, // you can pass your internal invoice model id as external-id, this should be unique and can prevent from duplicate invoices
-            `invoice for fake product (userId: ${userId})`, // this can be used to found descriptions in payment panel
-            `userId=${userId}`, // you can pass customData which will be returned when you want to check invoice
-            `https://t.me/SwapwalletDemoBot?start=check-invoices`, // if return url starts with https://t.me/, it will return to telegram-bot with your predefined start param, you can use external-id as start params to check invoice status
-        )
+	// Notify the buyer that their invoice was paid. In a real service you would
+	// also deliver the purchased product here.
+	async notifyPaid(invoice) {
+		const name = this.productName(invoice.customData);
+		try {
+			await this.bot.telegram.sendMessage(
+				invoice.userId,
+				`سفارش «${name ?? "شما"}» با موفقیت پرداخت شد! 🎉`,
+			);
+			invoice.sentMessageToUser = true;
+			await invoice.save();
+		} catch (e) {
+			console.error(`cannot send message to telegram ${e}`);
+		}
+	}
 
-        // then, we store the invoice into our database
-        const newInvoice = new InvoiceModel({
-            userId, // you can store other references like order/basket model based on your service
-            swapPayId: invoiceRes.id, // we store swap-pay invoice_id into the database for future checks
-            amount,
-            token,
-        })
-        await newInvoice.save()
+	productName(customData) {
+		try {
+			return customData ? JSON.parse(customData).name : null;
+		} catch {
+			return null;
+		}
+	}
 
-        return invoiceRes
-    }
+	async getInvoiceWalletAddressFromBackend({
+		amount,
+		token,
+		allowedToken,
+		network,
+		userId,
+		ttl = 3600,
+		orderId = null,
+		customData = null,
+	}) {
+		// Format amount as expected by the API
+		const formattedAmount = {
+			number: amount,
+			unit: token,
+		};
+
+		// Ensure ttl is within valid range (300-21600 seconds)
+		const validTtl = Math.max(300, Math.min(21600, ttl));
+
+		// Use the SwapPay service method to create direct invoice
+		const invoiceRes = await this.swapPay.newDirectInvoice(
+			formattedAmount,
+			allowedToken,
+			network,
+			validTtl,
+			orderId,
+			customData,
+		);
+
+		const newInvoice = new InvoiceModel({
+			userId,
+			swapPayId: invoiceRes.id,
+			amount,
+			token,
+			shouldPayAmount: invoiceRes.amount.amount.number,
+			shouldPayToken: invoiceRes.amount.amount.unit,
+			network,
+		});
+		await newInvoice.save();
+
+		return invoiceRes;
+	}
+
+	async getResidFromBackend({
+		amount,
+		userId,
+		ttl = 3600,
+		orderId = null,
+		customData = null,
+	}) {
+		// Format amount as expected by the API
+		const formattedAmount = {
+			number: amount,
+			unit: "IRT",
+		};
+
+		// Ensure ttl is within valid range (300-21600 seconds)
+		const validTtl = Math.max(300, Math.min(21600, ttl));
+
+		// Use the SwapPay service method to create direct invoice
+		const residRes = await this.swapPay.newResid(
+			formattedAmount,
+			validTtl,
+			orderId,
+			customData,
+		);
+
+		const newResid = new InvoiceModel({
+			userId,
+			swapPayId: residRes.id,
+			amount,
+			token: "IRT",
+			shouldPayAmount: amount,
+			shouldPayToken: "IRT",
+			network: "BSC",
+		});
+		await newResid.save();
+
+		return residRes;
+	}
 }
 
-module.exports = Invoice
+module.exports = Invoice;

@@ -1,18 +1,26 @@
 {
-  "name": "payment-example",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/index.js"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "axios": "^1.5.0",
-    "mongoose": "^7.5.0",
-    "nodemon": "^3.0.1",
-    "telegraf": "^4.12.2"
-  }
+	"name": "payment-example",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node src/index.js",
+		"format": "biome format --write",
+		"lint": "biome lint --write",
+		"check": "biome check --write"
+	},
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"axios": "^1.5.0",
+		"dotenv": "^17.2.2",
+		"https-proxy-agent": "7.0.6",
+		"mongoose": "^7.5.0",
+		"nodemon": "^3.0.1",
+		"telegraf": "^4.12.2"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.2.3"
+	}
 }

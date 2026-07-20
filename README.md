@@ -6,13 +6,28 @@ For more info please check our [API Docs](https://docs.swapwallet.app).
 
 ## Usage
 
+### Start
+
 ```bash
 npm start
 ```
 
-# Deploy
+### Format
 
-first fill `config.js` with your credentials and then run application with docker-compose:
+```bash
+# format files
+npx @biomejs/biome format --write
+
+# lint files and apply the safe fixes
+npx @biomejs/biome lint --write
+
+# run format, lint, etc. and apply the safe fixes
+npx @biomejs/biome check --write
+```
+
+## Deploy
+
+first copy `.env-example` to `.env` and fill env variables with your credentials and then run application with docker-compose:
 
 ```bash
 docker-compose up -d
